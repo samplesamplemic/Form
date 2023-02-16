@@ -32,6 +32,7 @@ import java.util.*;
 class RegistrationApplicationTests {
 
     String url = "http://localhost:8080/";
+    String email = "test@email.com";
     User user;
     UserDto userDto;
 
@@ -56,44 +57,46 @@ class RegistrationApplicationTests {
                 .build();
     }
 
+    @AfterEach
+    void cleanSetUp() {
+        if(userRepository.findByEmail(email) != null){
+            userRepository.deleteById(userRepository.findByEmail(email).getId());
+        }
+    }
+
     @Test
     void getRegister_shouldReturn_signup_form_HTML_page() throws Exception {
-        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get(url + "register")
-                        //.accept(MediaType.APPLICATION_JSON)
-                        //.contentType(MediaType.APPLICATION_JSON)
-                        //.content(objectMapper.writeValueAsString(userDto)))
-                )
+        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get(url + "register"))
                 .andExpect(status().isOk())
                 .andDo(print());
     }
 
     @Test
     void createUser_shouldReturn_statusCode_Ok() throws Exception {
-
+        //to form-urlEncoded
         ResultActions result = mockMvc.perform(post(url + "process_register")
-                        .param("email", "test@email.com")
+                        .param("email", email)
                         .param("password", "test")
                         .param("firstName", "mario")
                         .param("lastName", "rossi")
-                        )
+                )
                 .andExpect(status().isCreated())
                 .andDo(print());
-        userRepository.deleteById(userRepository.findByEmail("test@email.com").getId());
+
     }
 
     @Test
     void createUser_shouldReturn_statusCode_Conflict_userEmailAlreadyExist() throws Exception {
         //save another user with same e-mail before the post req
-        User user1 = userRepository.save(new User(null, "test@email.com","test","mario", "rossi"));
+        User user1 = userRepository.save(new User(null, email, "test", "mario", "rossi"));
 
         ResultActions result = mockMvc.perform(post(url + "process_register")
-                        .param("email", "test@email.com")
+                        .param("email", email)
                         .param("password", "test")
                         .param("firstName", "mario")
                         .param("lastName", "rossi")
                         .with(csrf()))
                 .andExpect(status().isConflict())
                 .andDo(print());
-        userRepository.deleteById(userRepository.findByEmail(user1.getEmail()).getId());
     }
 }
