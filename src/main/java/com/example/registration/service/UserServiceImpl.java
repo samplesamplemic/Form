@@ -4,25 +4,21 @@ import com.example.registration.entity.User;
 import com.example.registration.exception.UserAlreadyExistsException;
 import com.example.registration.model.UserDto;
 import com.example.registration.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
+@AllArgsConstructor
 public class UserServiceImpl {
 
     @Autowired
     private UserRepository userRepository;
 
-    public String createUser(UserDto userDto, BindingResult bindingResult) {
+    public User createUser(UserDto userDto) {
         if (userRepository.findByEmail(userDto.getEmail()) == null) {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String encodedPassword = passwordEncoder.encode(userDto.getPassword());
@@ -34,7 +30,7 @@ public class UserServiceImpl {
                     .lastName(userDto.getLastName().toLowerCase())
                     .build();
             userRepository.save(newUser);
-            return "register_success";
+            return newUser;
         } else {
             // throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED, "User already registered");
             //ObjectError err = new ObjectError("form", "User already exists");

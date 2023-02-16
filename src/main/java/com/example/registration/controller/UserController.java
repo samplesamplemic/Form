@@ -4,7 +4,9 @@ import com.example.registration.entity.User;
 import com.example.registration.model.UserDto;
 import com.example.registration.repository.UserRepository;
 import com.example.registration.service.UserServiceImpl;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -43,10 +45,12 @@ public class UserController {
     }
 
     @PostMapping("/process_register")
+    @ResponseStatus(HttpStatus.CREATED)
     public String processRegister(UserDto userDto, BindingResult bindingResult) {
-        String template = userService.createUser(userDto, bindingResult);
-        return template;
-        //return "register_success.html";
+        //String template = userService.createUser(userDto);
+        // return template;
+        userService.createUser(userDto);
+        return "register_success.html";
     }
 
     @GetMapping("/users")
