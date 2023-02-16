@@ -31,7 +31,7 @@ public class RegistrationUnitTest {
 
     @BeforeEach
     void setUp() {
-        user = new User(null, "mic@gmail.com", "sopra", "mic", "lt");
+        user = new User(null, "test@gmail.com", "test", "mic", "lt");
         userDto = UserDto.builder()
                 .email(user.getEmail())
                 .password(user.getPassword())
