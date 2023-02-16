@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="ISO-8859-1">
+    <title>Sign Up</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/style/style.css}">
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css"/>
+    <script type="text/javascript" src="/webjars/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body class="bg-img">
+<div class="container text-center h-100 d-flex flex-column justify-content-center">
+    <div class="w-50 py-4 align-self-center glass_effect">
+        <div>
+            <h1 class="opacity-75">Sign Up</h1>
+        </div>
+        <form th:action="@{/process_register}" th:object="${user}"
+              method="post" style="max-width: 600px; margin: 0 auto;" class="w-100">
+            <div class="m-3">
+                <div class="form-group row justify-content-center pb-2">
+                    <div class="col-8 w-75">
+                        <input type="email" th:field="*{email}" class="form-control" placeholder="E-mail" required/>
+                    </div>
+                </div>
+
+                <div class="form-group row justify-content-center pb-2">
+                    <div class="col-8 w-75">
+                        <input type="password" th:field="*{password}" class="form-control" placeholder="Password"
+                               required minlength="6" maxlength="10"/>
+                    </div>
+                </div>
+
+                <div class="form-group row justify-content-center pb-2">
+                    <div class="col-8 w-75">
+                        <input type="text" th:field="*{firstName}" class="form-control" placeholder="First Name"
+                               required minlength="2" maxlength="20"/>
+                    </div>
+                </div>
+
+                <div class="form-group row justify-content-center pb-2">
+                    <div class="col-8 w-75">
+                        <input type="text" th:field="*{lastName}" class="form-control" placeholder="Last Name"
+                               required minlength="2" maxlength="20"/>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-primary px-5 mt-4">Sign Up</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
