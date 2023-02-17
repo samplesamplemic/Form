@@ -45,4 +45,9 @@ public class UserServiceImpl {
         List<User> usersList = userRepository.findAll();
         return usersList;
     }
+
+    public User findUser(String email){
+        User user = userRepository.findByEmail(email);
+        return user;
+    }
 }

@@ -17,10 +17,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class RegistrationUnitTest {
 
+    String email = "test@mail.com";
     User user;
     UserDto userDto;
 
@@ -31,7 +33,7 @@ public class RegistrationUnitTest {
 
     @BeforeEach
     void setUp() {
-        user = new User(null, "test@gmail.com", "test", "mic", "lt");
+        user = new User(null, email, "test", "mic", "lt");
         userDto = UserDto.builder()
                 .email(user.getEmail())
                 .password(user.getPassword())
@@ -47,5 +49,12 @@ public class RegistrationUnitTest {
         User userToMatch = userService.createUser(userDto);
         System.out.println(userToMatch);
         assertThat(userToMatch).isNotNull();
+    }
+
+    @Test
+    void query_findByEmail_userRepository(){
+        when(userRepository.findByEmail(email)).thenReturn(user);
+        User userToMatch = userService.findUser(email);
+        assertThat(userToMatch.getFirstName()).isEqualTo("mic");
     }
 }
