@@ -52,9 +52,10 @@ public class RegistrationUnitTest {
     }
 
     @Test
-    void query_findByEmail_userRepository(){
+    void query_findByEmail_userRepository() {
         when(userRepository.findByEmail(email)).thenReturn(user);
         User userToMatch = userService.findUser(email);
         assertThat(userToMatch.getFirstName()).isEqualTo("mic");
     }
+
 }

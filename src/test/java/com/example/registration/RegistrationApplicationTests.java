@@ -20,6 +20,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -65,14 +67,14 @@ class RegistrationApplicationTests {
     }
 
     @Test
-    void getRegister_shouldReturn_signup_form_HTML_page() throws Exception {
+    void getRegister_shouldReturn_statusOk_and_signup_form_HTML_page() throws Exception {
         ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get(url + "register"))
                 .andExpect(status().isOk())
                 .andDo(print());
     }
 
     @Test
-    void createUser_shouldReturn_statusCode_Ok() throws Exception {
+    void createUser_shouldReturn_statusCode_Ok_and_matchNewUser() throws Exception {
         //to form-urlEncoded
         ResultActions result = mockMvc.perform(post(url + "process_register")
                         .param("email", email)
@@ -82,7 +84,9 @@ class RegistrationApplicationTests {
                 )
                 .andExpect(status().isCreated())
                 .andDo(print());
-
+        User userToMatch = userService.findUser(email);
+        assertThat(userToMatch).isNotNull();
+        assertEquals("mario", userToMatch.getFirstName());
     }
 
     @Test
@@ -98,5 +102,14 @@ class RegistrationApplicationTests {
                         .with(csrf()))
                 .andExpect(status().isConflict())
                 .andDo(print());
+    }
+
+    @Test
+    void findAllUser_shouldReturn_listOfUsers(){
+        User user1 = userRepository.save(new User(null, email, "test", "mario", "rossi"));
+        User user2 = userRepository.save(new User(null, "test2@email", "test", "mario", "rossi"));
+        List<User> userList = userService.findAllUser();
+        assertThat(userList.size()==2);
+        assertEquals(userList.get(0).getFirstName(), "mario");
     }
 }

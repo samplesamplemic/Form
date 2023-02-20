@@ -44,7 +44,7 @@ public class securityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.headers().frameOptions().disable();
+        http.headers().frameOptions().disable(); //disable security to access the h2-database console
         http.csrf().disable()
                 .authorizeHttpRequests((auth) -> {
                     try {
