@@ -14,9 +14,6 @@ public class CustomUserDetails implements UserDetails {
 
     private User user;
 
-    public CustomUserDetails(Optional<User> user) {
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
@@ -53,9 +50,8 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public String getFullName() {
-        String firstName = user.getFirstName().substring(0, 1).toUpperCase().concat(user.getFirstName().substring(1));
-        String lastName = user.getLastName().substring(0, 1).toUpperCase().concat(user.getLastName().substring(1));
-        return firstName.concat(" " + lastName);
+
+        return user.getFirstName().concat(" " + user.getLastName());
     }
 
 }

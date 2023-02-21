@@ -5,24 +5,34 @@ import com.example.registration.exception.UserAlreadyExistsException;
 import com.example.registration.model.UserDto;
 import com.example.registration.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
-public class UserServiceImpl {
+@Log4j2
+public class UserServiceImpl implements UserService<UserDto> {
 
     @Autowired
     private UserRepository userRepository;
 
-    public User createUser(UserDto userDto) {
-        if (userRepository.findByEmail(userDto.getEmail()) == null) {
+    @Override
+    public UserDto createUser(UserDto userDto) throws UserAlreadyExistsException {
+        log.info("User try to sign up...");
+        String email = userDto.getEmail();
+        if (userRepository.findByEmail(email) == null) {
+            log.info(String.format("User with email: %s not found, proceeding to its creation", email));
+
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            log.info("Password created successfully");
             String encodedPassword = passwordEncoder.encode(userDto.getPassword());
             userDto.setPassword(encodedPassword);
+
             User newUser = User.builder()
                     .email(userDto.getEmail())
                     .password(userDto.getPassword())
@@ -30,24 +40,33 @@ public class UserServiceImpl {
                     .lastName(userDto.getLastName().toLowerCase())
                     .build();
             userRepository.save(newUser);
-            return newUser;
+            log.info(String.format("New user created, id: %s", newUser.getId()));
+
+            return userDto;
         } else {
-            // throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED, "User already registered");
-            //ObjectError err = new ObjectError("form", "User already exists");
-            //bindingResult.addError(err);
-            //return "login";
-            throw new UserAlreadyExistsException("User already registered");
+            UserAlreadyExistsException err = new UserAlreadyExistsException();
+            log.info("Exception throws: " + err.getMessage());
+            throw err;
         }
     }
 
+    @Override
+    public List<UserDto> findAllUsers() {
+        List<UserDto> usersList = userRepository.findAll().stream()
+                .map(user -> new UserDto(user.getId(), user.getEmail(), null, user.getFirstName(), user.getLastName())).toList();
 
-    public List<User> findAllUser() {
-        List<User> usersList = userRepository.findAll();
         return usersList;
     }
 
-    public User findUser(String email){
+    @Override
+    public UserDto findUser(String email) {
         User user = userRepository.findByEmail(email);
-        return user;
+        log.info("Requested user: "+user.toString());
+        UserDto userDtoToReturn = UserDto.builder()
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .build();
+        return userDtoToReturn;
     }
 }

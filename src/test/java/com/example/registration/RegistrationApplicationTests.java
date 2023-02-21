@@ -14,18 +14,25 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.*;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.hamcrest.Matchers.is;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.setup.SharedHttpSessionConfigurer.sharedHttpSession;
 
 import java.util.*;
 
@@ -35,6 +42,7 @@ class RegistrationApplicationTests {
 
     String url = "http://localhost:8080/";
     String email = "test@email.com";
+    String password = "test";
     User user;
     UserDto userDto;
 
@@ -68,7 +76,7 @@ class RegistrationApplicationTests {
 
     @Test
     void getRegister_shouldReturn_statusOk_and_signup_form_HTML_page() throws Exception {
-        ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get(url + "register"))
+        ResultActions result = mockMvc.perform(get(url + "register"))
                 .andExpect(status().isOk())
                 .andDo(print());
     }
@@ -84,13 +92,13 @@ class RegistrationApplicationTests {
                 )
                 .andExpect(status().isCreated())
                 .andDo(print());
-        User userToMatch = userService.findUser(email);
+        UserDto userToMatch = userService.findUser(email);
         assertThat(userToMatch).isNotNull();
         assertEquals("mario", userToMatch.getFirstName());
     }
 
     @Test
-    void createUser_shouldReturn_statusCode_Conflict_userEmailAlreadyExist() throws Exception {
+    void createUser_shouldReturn_statusCodeConflict_userAlreadyExistException() throws Exception {
         //save another user with same e-mail before the post req
         User user1 = userRepository.save(new User(null, email, "test", "mario", "rossi"));
 
@@ -105,11 +113,22 @@ class RegistrationApplicationTests {
     }
 
     @Test
-    void findAllUser_shouldReturn_listOfUsers(){
-        User user1 = userRepository.save(new User(null, email, "test", "mario", "rossi"));
-        User user2 = userRepository.save(new User(null, "test2@email", "test", "mario", "rossi"));
-        List<User> userList = userService.findAllUser();
-        assertThat(userList.size()==2);
-        assertEquals(userList.get(0).getFirstName(), "mario");
+    void findAllUser_shouldReturn_listOfUsersInHTMLPage_and_statusCodeOk_after_loginAuthentication() throws Exception {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String pswEncoded = encoder.encode(password);
+
+        User user1 = userRepository.save(new User(null, email, pswEncoded, "mario", "rossi"));
+        User user2 = userRepository.save(new User(null, "test2@email", pswEncoded, "giovanni", "verdi"));
+        MvcResult result = mockMvc.perform(formLogin().user("email",email).password(password))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/users"))
+                .andExpect(authenticated().withUsername(email))
+                .andDo(print())
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) result.getRequest().getSession(false);
+        mockMvc.perform(get(url+"users").session(session))
+                .andExpect(status().isOk())
+                .andDo(print());
     }
 }
