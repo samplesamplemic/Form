@@ -1,5 +1,6 @@
 package com.example.registration.security;
 
+import com.example.registration.security.authentication.CustomFailureAuthentication;
 import com.example.registration.service.CustomUserDetailsService;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -65,8 +67,7 @@ public class securityConfig {
                                 .and()
                                 .formLogin()
                                 .loginPage("/login").permitAll()
-                                //.loginProcessingUrl("/perform_login")
-                                //.failureUrl("/login.html?error=true")
+                                .failureHandler(authenticationFailureHandler())
                                 .usernameParameter("email")
                                 .defaultSuccessUrl("/users")
                                 .permitAll()
@@ -104,6 +105,11 @@ public class securityConfig {
     public HttpSessionEventPublisher httpSessionEventPublisher() {
 //      to notified Spring Security session registry when the session is destroyed
         return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler(){
+        return new CustomFailureAuthentication();
     }
 
 }
